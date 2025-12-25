@@ -1,0 +1,8 @@
+*~
+__pycache__
+*.MP4
+*.mp4
+sample/*
+*.png
+*.gpx
+*.csv

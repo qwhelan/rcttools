@@ -1,0 +1,55 @@
+[project]
+name = "rcttools"
+version = "0.1.0"
+authors = [
+  {name = "Christopher Whelan", email = "topherwhelan@gmail.com"},
+]
+description = ""
+keywords = ["GPX", "Garmin", "Varia", "Cycling"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Other Audience",
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "ffmpeg-python",
+  "numpy",
+  "python-dateutil",
+  "Pillow",
+  "pandas >= 1.0",
+  "types-Pillow",
+  "types-python-dateutil",
+  "pandas-stubs",
+  "mypy",
+  "gpxpy>=1.6.2",
+  "pytest>=9.0.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.16"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "rcttools"
+module-root = ""
+source-include = ["rcttools/data/*.png"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+pythonpath = [
+  "."
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[project.scripts]
+rct2gpx = "rcttools.rct2gpx:main"
