@@ -8,7 +8,7 @@ This tool attempts to extract time and GPS coordinates into a GPX file to allow 
 
 ## ffmpeg-based Cropping and Thresholding
 
-The data is embedded as white text with a black border. Unfortunately, a common background is asphalt from roads and white road markings, both which interfere with a straight OCR of the raw footage.
+The data is embedded as white text with a black border. Unfortunately, a common background is asphalt from roads and white road markings, both of which interfere with a straight OCR of the raw footage.
 
 Instead, we use ffmpeg's threshold filter to extract only the pure white pixels, setting all others to black. We then invert all pixels to get black text on a white background, to assist OCR.
 
@@ -48,7 +48,7 @@ As the least significant time digit is not impacted in its horizontal position, 
 
  Working on the stacked frames, we can now process ~30 frames at once and utilize the v0/v1 state machine to identify the appropriate horizontal/vertical offset for the next character.
 
- Each character has been extracted as a PNG in `rcttools/alphabet/` and the candidate charater is converted into a bitmap and `np.logical_and()`'d with each relevant character in the alphabet, which is a function of the state machine. This score is normalized by the `np.logical_or()` of the character with the candidate and the top character from the alphabet is used.
+ Each character has been extracted as a PNG in `rcttools/alphabet/` and the candidate character is converted into a bitmap and `np.logical_and()`'d with each relevant character in the alphabet, which is a function of the state machine. This score is normalized by the `np.logical_or()` of the character with the candidate and the top character from the alphabet is used.
 
  In general, a score of ~0.95 is expected from a good quality match; a score of less than 0.8 indicates no good match (likely no data whatsoever).
 
