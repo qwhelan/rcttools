@@ -1,10 +1,10 @@
 [project]
 name = "rcttools"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   {name = "Christopher Whelan", email = "topherwhelan@gmail.com"},
 ]
-description = ""
+description = "Community tools for archiving and processing footage from the Garmin Varia RCT715 bike camera/radar"
 keywords = ["GPX", "Garmin", "Varia", "Cycling"]
 classifiers = [
   "Development Status :: 3 - Alpha",
