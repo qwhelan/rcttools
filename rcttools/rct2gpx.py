@@ -10,12 +10,7 @@ from gpxpy.gpx import GPX, GPXTrack, GPXTrackPoint, GPXTrackSegment
 from PIL import Image
 
 from .alphabet import NUMBERS, NUMBERS_SHAPE
-from .common import (
-    CHAR_WIDTHS,
-    FLOAT_FRAME_TYPE,
-    FLOAT_VIDEO_TYPE,
-    VIDEO_TYPE,
-)
+from .common import CHAR_WIDTHS, FLOAT_FRAME_TYPE, FLOAT_VIDEO_TYPE, VIDEO_TYPE
 from .text_format import EmbeddedData, StateMachine
 
 
