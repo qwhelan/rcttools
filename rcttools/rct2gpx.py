@@ -36,7 +36,7 @@ def transcode(mp4_path: str) -> VIDEO_TYPE:
 
 def fast_parse(
     mp4_path: str, write_stacked_frames: bool = False, output_directory: str = ""
-) -> Tuple[dict[int, EmbeddedData], pd.Series[float]]:
+) -> Tuple[dict[int, EmbeddedData], "pd.Series[float]"]:
     alphabet = NUMBERS
 
     video = transcode(mp4_path)
