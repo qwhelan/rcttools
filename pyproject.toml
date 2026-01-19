@@ -1,6 +1,6 @@
 [project]
 name = "rcttools"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
   {name = "Christopher Whelan", email = "topherwhelan@gmail.com"},
 ]
@@ -23,6 +23,7 @@ dependencies = [
   "pandas-stubs",
   "mypy",
   "gpxpy>=1.6.2",
+  "exif>=1.6.1",
 ]
 
 [build-system]
