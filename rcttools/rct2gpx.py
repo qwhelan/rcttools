@@ -3,6 +3,7 @@ import os.path
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple
 
+import exif  # type: ignore[import-untyped]
 import ffmpeg  # type: ignore[import-untyped]
 import numpy as np
 import pandas as pd
@@ -10,7 +11,13 @@ from gpxpy.gpx import GPX, GPXTrack, GPXTrackPoint, GPXTrackSegment
 from PIL import Image
 
 from .alphabet import NUMBERS, NUMBERS_SHAPE
-from .common import CHAR_WIDTHS, FLOAT_FRAME_TYPE, FLOAT_VIDEO_TYPE, VIDEO_TYPE
+from .common import (
+    CHAR_WIDTHS,
+    FLOAT_FRAME_TYPE,
+    FLOAT_VIDEO_TYPE,
+    VIDEO_TYPE,
+    dec_to_dms,
+)
 from .text_format import EmbeddedData, StateMachine
 
 
@@ -32,6 +39,55 @@ def transcode(mp4_path: str) -> VIDEO_TYPE:
         .run(capture_stdout=True, quiet=True)
     )
     return np.frombuffer(out, np.uint8).reshape([-1, height, width, 3])
+
+
+def extract_full_frames(
+    mp4_path: str, results: Dict[int, EmbeddedData], output_dir: str
+) -> None:
+    basename = os.path.basename(mp4_path).rsplit(".", 1)[0]
+    output_dir = os.path.join(output_dir, basename)
+    frame_nums = sorted(results.keys())
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    out, err = (
+        ffmpeg.input(mp4_path)
+        .filter("select", "+".join(f"eq(n,{x})" for x in frame_nums))
+        .output(
+            os.path.join(output_dir, "frames%02d.jpg"),
+            vframes=len(frame_nums),
+            format="image2",
+            vcodec="mjpeg",
+            vsync=0,
+        )
+        .run(capture_stdout=True, quiet=True)
+    )
+    for i, frame in enumerate(frame_nums):
+        data = results[frame]
+
+        input_path = os.path.join(output_dir, f"frames{str(i + 1).zfill(2)}.jpg")
+        output_path = os.path.join(
+            output_dir, data["datetime"].strftime("%Y%m%d_%H%M%S.jpg")
+        )
+        with open(input_path, "rb") as f:
+            img = exif.Image(f.read())
+
+        img.datetime_original = data["datetime"].strftime(exif.DATETIME_STR_FORMAT)
+
+        lat = data["latitude"]
+        if lat:
+            lat_dms = dec_to_dms(lat)
+            img.gps_latitude = lat_dms
+            img.gps_latitude_ref = "N" if lat >= 0 else "S"
+
+        lon = data["longitude"]
+        if lon:
+            lon_dms = dec_to_dms(lon)
+            img.gps_longitude = lon_dms
+            img.gps_longitude_ref = "E" if lon >= 0 else "W"
+
+        with open(output_path, "wb") as f:
+            f.write(img.get_file())
+        os.remove(input_path)
 
 
 def fast_parse(
@@ -153,7 +209,7 @@ def main() -> None:
     parser.add_argument(
         "--write-stacked-frames",
         action="store_true",
-        help="Write stacked frames to PNG files",
+        help="Write stacked frames of data fields to PNG files",
     )
     parser.add_argument("--no-gpx", action="store_true", help="Do not output GPX file")
     parser.add_argument(
@@ -164,6 +220,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--show-stats", action="store_true", help="Show summary statistics"
+    )
+    parser.add_argument(
+        "--extract-frames",
+        action="store_true",
+        help="Write full frames corresponding to data updates to disk",
     )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
 
@@ -220,6 +281,9 @@ def main() -> None:
         gpx_path = os.path.join(prefix, f"{basename}.gpx")
         with open(gpx_path, "w") as f:
             f.write(gpx_obj.to_xml(version="1.1"))
+
+    if args.extract_frames:
+        extract_full_frames(mp4_path, result, prefix)
 
 
 if __name__ == "__main__":

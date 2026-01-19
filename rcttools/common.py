@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Literal, Tuple
 
 import numpy as np
@@ -28,3 +29,13 @@ CHAR_WIDTHS[":"] = 14
 CHAR_WIDTHS["."] = 14
 CHAR_WIDTHS["-"] = 14
 CHAR_WIDTHS[""] = 0
+
+
+def dec_to_dms(gps_decimal: Decimal) -> Tuple[Decimal, Decimal, Decimal]:
+    whole = abs(gps_decimal) // 1
+    fraction = abs(gps_decimal) % 1
+    minutes = (fraction * 60) // 1
+    fraction -= minutes / 60
+    seconds = fraction * 3600
+
+    return whole, minutes, seconds
