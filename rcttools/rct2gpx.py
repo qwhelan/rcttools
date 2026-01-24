@@ -215,7 +215,12 @@ def main() -> None:
     parser.add_argument(
         "--types",
         action="append",
-        help="Types of output to generate",
+        help=(
+            "Types of output to generate - gpx: GPX file, csv: CSV file, "
+            "data_stacked_frames: Stacked frames of data region, full_frames: "
+            "Full frames corresponding to data updates with EXIF data tags. "
+            "If not specified, defaults to gpx"
+        ),
         type=str,
         choices=[
             OutputType.GPX,
@@ -231,7 +236,9 @@ def main() -> None:
         help="Directory to save output files",
     )
     parser.add_argument(
-        "--show-stats", action="store_true", help="Show summary statistics"
+        "--show-stats",
+        action="store_true",
+        help="Show summary statistics for alphabet fit debugging",
     )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
 
