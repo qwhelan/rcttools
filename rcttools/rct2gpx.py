@@ -21,6 +21,13 @@ from .common import (
 from .text_format import EmbeddedData, StateMachine
 
 
+class OutputType:
+    GPX = "gpx"
+    CSV = "csv"
+    DATA_STACKED_FRAMES = "data_stacked_frames"
+    FULL_FRAMES = "full_frames"
+
+
 def transcode(mp4_path: str) -> VIDEO_TYPE:
     """
     Transcode an MP4 video file to extract the region with data.
@@ -205,13 +212,18 @@ def main() -> None:
         description="Extract GPX data embedded in MP4 video files from Garmin Varia RCT715 devices",
     )
     parser.add_argument("mp4_path", type=str)
-    parser.add_argument("--csv", action="store_true", help="Output results to CSV file")
     parser.add_argument(
-        "--write-stacked-frames",
-        action="store_true",
-        help="Write stacked frames of data fields to PNG files",
+        "--types",
+        action="append",
+        help="Types of output to generate",
+        type=str,
+        choices=[
+            OutputType.GPX,
+            OutputType.CSV,
+            OutputType.DATA_STACKED_FRAMES,
+            OutputType.FULL_FRAMES,
+        ],
     )
-    parser.add_argument("--no-gpx", action="store_true", help="Do not output GPX file")
     parser.add_argument(
         "--output-directory",
         type=str,
@@ -221,22 +233,19 @@ def main() -> None:
     parser.add_argument(
         "--show-stats", action="store_true", help="Show summary statistics"
     )
-    parser.add_argument(
-        "--extract-frames",
-        action="store_true",
-        help="Write full frames corresponding to data updates to disk",
-    )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
+    types = args.types or [OutputType.GPX]
 
     mp4_path = args.mp4_path
     prefix = os.path.dirname(mp4_path)
     if args.output_directory:
         prefix = args.output_directory
     basename = os.path.basename(mp4_path).rsplit(".", 1)[0]
-    csv = args.csv
-    gpx = not args.no_gpx
+    csv = OutputType.CSV in types
+    gpx = OutputType.GPX in types
+    full_frames = OutputType.FULL_FRAMES in types
     show_stats = args.show_stats
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
@@ -244,7 +253,7 @@ def main() -> None:
         logging.basicConfig(level=logging.WARNING)
     result, summary_stats = fast_parse(
         mp4_path,
-        write_stacked_frames=args.write_stacked_frames,
+        write_stacked_frames=OutputType.DATA_STACKED_FRAMES in types,
         output_directory=prefix,
     )
 
@@ -282,7 +291,7 @@ def main() -> None:
         with open(gpx_path, "w") as f:
             f.write(gpx_obj.to_xml(version="1.1"))
 
-    if args.extract_frames:
+    if full_frames:
         extract_full_frames(mp4_path, result, prefix)
 
 
