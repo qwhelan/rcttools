@@ -18,7 +18,7 @@ class Character:
 
     def score_frame(self, frame: FLOAT_FRAME_TYPE) -> float:
         union_mask: np.ndarray[Tuple[int], np.dtype[np.bool_]] = np.logical_or(
-            self.mask, frame
+            self.mask, frame > 0.5
         )
         return 1.0 * int(frame[self.mask].sum()) / int(union_mask.sum())
 
@@ -26,7 +26,7 @@ class Character:
         self, frame: FLOAT_VIDEO_TYPE
     ) -> np.ndarray[Tuple[VIDEO_LENGTH], np.dtype[np.float32]]:
         mask_4d = np.tile(self.mask_4d, (frame.shape[0], 1, 1, 1))
-        union_mask = np.logical_or(mask_4d, frame)
+        union_mask = np.logical_or(mask_4d, frame > 0.5)
         return (  # type: ignore[no-any-return]
             1.0 * (frame * mask_4d).sum(axis=(1, 2, 3)) / union_mask.sum(axis=(1, 2, 3))
         )
