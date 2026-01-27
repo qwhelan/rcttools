@@ -143,7 +143,7 @@ def fast_parse(
 
     ranges: List[Tuple[int, int]] = []
     for i in range(len(changes) - 1):
-        if change_max[i] > 0.8:
+        if change_max[i] > 0.4:
             ranges.append((changes[i], changes[i + 1]))
     ranges.append((changes[-1], len(video)))
 
