@@ -1,6 +1,7 @@
 import logging
 import os.path
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Dict, List, Tuple
 
 import exif  # type: ignore[import-untyped]
@@ -16,9 +17,14 @@ from .common import (
     FLOAT_FRAME_TYPE,
     FLOAT_VIDEO_TYPE,
     VIDEO_TYPE,
+    calc_bearing,
     dec_to_dms,
 )
 from .text_format import EmbeddedData, StateMachine
+
+
+class EmbeddedAndDerivedData(EmbeddedData):
+    heading: Decimal | None
 
 
 class OutputType:
@@ -49,7 +55,7 @@ def transcode(mp4_path: str) -> VIDEO_TYPE:
 
 
 def extract_full_frames(
-    mp4_path: str, results: Dict[int, EmbeddedData], output_dir: str
+    mp4_path: str, results: Dict[int, EmbeddedAndDerivedData], output_dir: str
 ) -> None:
     basename = os.path.basename(mp4_path).rsplit(".", 1)[0]
     output_dir = os.path.join(output_dir, basename)
@@ -91,6 +97,11 @@ def extract_full_frames(
             lon_dms = dec_to_dms(lon)
             img.gps_longitude = lon_dms
             img.gps_longitude_ref = "E" if lon >= 0 else "W"
+
+        heading = data["heading"]
+        if heading is not None:
+            img.gps_img_direction = float(heading)
+            img.gps_img_direction_ref = "T"
 
         with open(output_path, "wb") as f:
             f.write(img.get_file())
@@ -205,6 +216,49 @@ def fast_parse(
     return result, pd.Series(summary_stats)
 
 
+def add_heading(
+    embedded_data: Dict[int, EmbeddedData],
+) -> Dict[int, EmbeddedAndDerivedData]:
+    result: Dict[int, EmbeddedAndDerivedData] = {}
+    keys = sorted(embedded_data.keys())
+    heading: Decimal | None = None
+    for i in range(len(keys) - 1):
+        data1 = embedded_data[keys[i]]
+        data2 = embedded_data[keys[i + 1]]
+        lat1 = data1["latitude"]
+        lon1 = data1["longitude"]
+        lat2 = data2["latitude"]
+        lon2 = data2["longitude"]
+
+        value = EmbeddedAndDerivedData(heading=None, **data1)
+        if (
+            lat1 is not None
+            and lon1 is not None
+            and lat2 is not None
+            and lon2 is not None
+        ):
+            # Heading will be None if points are identical
+            heading = calc_bearing(lat1, lon1, lat2, lon2)
+            value["heading"] = heading
+
+        result[keys[i]] = value
+
+    result[keys[-1]] = EmbeddedAndDerivedData(
+        heading=heading, **embedded_data[keys[-1]]
+    )
+
+    heading = None
+    for i in range(len(keys)):
+        # Propagate last known, non-null heading forward
+        heading_temp = result[keys[i]]["heading"]
+        if heading_temp is not None:
+            # Assume RCT715 is mounted backwards
+            heading = (heading_temp + Decimal(180)) % 360
+        result[keys[i]]["heading"] = heading
+
+    return result
+
+
 def main() -> None:
     import argparse
 
@@ -258,11 +312,12 @@ def main() -> None:
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
-    result, summary_stats = fast_parse(
+    embedded_data, summary_stats = fast_parse(
         mp4_path,
         write_stacked_frames=OutputType.DATA_STACKED_FRAMES in types,
         output_directory=prefix,
     )
+    result = add_heading(embedded_data)
 
     if show_stats or args.verbose:
         output_func = print if not args.verbose else logging.info

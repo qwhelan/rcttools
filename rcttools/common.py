@@ -1,5 +1,6 @@
 from decimal import Decimal
-from typing import Literal, Tuple
+from math import atan2, cos, degrees, radians, sin
+from typing import Literal, Optional, Tuple
 
 import numpy as np
 
@@ -44,3 +45,29 @@ def dec_to_dms(gps_decimal: Decimal) -> Tuple[Decimal, Decimal, Decimal]:
     seconds = fraction * DECIMAL_SIXTY_SQUARED
 
     return whole, minutes, seconds.quantize(DECIMAL_SECOND_PRECISION)
+
+
+def calc_bearing(
+    lat1: Decimal, lon1: Decimal, lat2: Decimal, lon2: Decimal
+) -> Optional[Decimal]:
+    """Calculate the bearing from point 1 to point 2.
+
+    All inputs and outputs are in decimal degrees.
+    """
+    if lat1 == lat2 and lon1 == lon2:
+        return None
+
+    lat1_rad = radians(lat1)
+    lat2_rad = radians(lat2)
+    delta_lon_rad = radians(lon2 - lon1)
+
+    x = sin(delta_lon_rad) * cos(lat2_rad)
+    y = cos(lat1_rad) * sin(lat2_rad) - (
+        sin(lat1_rad) * cos(lat2_rad) * cos(delta_lon_rad)
+    )
+
+    initial_bearing = atan2(x, y)
+    initial_bearing_deg = degrees(initial_bearing)
+    compass_bearing = (initial_bearing_deg + 360) % 360
+
+    return Decimal(compass_bearing).quantize(DECIMAL_SECOND_PRECISION)
