@@ -9,10 +9,11 @@ from ..common import dec_to_dms
 @pytest.mark.parametrize(
     "decimal_degrees, expected",
     [
-        (0.0, (0, 0, 0)),
-        (1.5, (1, 30, 0)),
-        (-1.5, (1, 30, 0)),
-        (90, (90, 0, 0)),
+        (Decimal("0.0"), (Decimal("0"), Decimal("0"), Decimal("0"))),
+        (Decimal("1.5"), (Decimal("1"), Decimal("30"), Decimal("0"))),
+        (Decimal("-1.5"), (Decimal("1"), Decimal("30"), Decimal("0"))),
+        (Decimal("90"), (Decimal("90"), Decimal("0"), Decimal("0"))),
+        (Decimal("47.62265"), (Decimal("47"), Decimal("37"), Decimal("21.54"))),
     ],
 )
 def test_dec_to_dms(

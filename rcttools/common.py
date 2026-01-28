@@ -30,12 +30,17 @@ CHAR_WIDTHS["."] = 14
 CHAR_WIDTHS["-"] = 14
 CHAR_WIDTHS[""] = 0
 
+DECIMAL_ONE = Decimal(1)
+DECIMAL_SIXTY = Decimal(60)
+DECIMAL_SIXTY_SQUARED = Decimal(3600)
+DECIMAL_SECOND_PRECISION = Decimal("0.000001")
+
 
 def dec_to_dms(gps_decimal: Decimal) -> Tuple[Decimal, Decimal, Decimal]:
-    whole = abs(gps_decimal) // 1
-    fraction = abs(gps_decimal) % 1
-    minutes = (fraction * 60) // 1
-    fraction -= minutes / 60
-    seconds = fraction * 3600
+    whole = gps_decimal.copy_abs() // DECIMAL_ONE
+    fraction = gps_decimal.copy_abs() % DECIMAL_ONE
+    minutes = (fraction * DECIMAL_SIXTY) // DECIMAL_ONE
+    fraction -= minutes / DECIMAL_SIXTY
+    seconds = fraction * DECIMAL_SIXTY_SQUARED
 
-    return whole, minutes, seconds
+    return whole, minutes, seconds.quantize(DECIMAL_SECOND_PRECISION)
