@@ -166,9 +166,25 @@ def fast_parse(
             path = os.path.join(output_directory, f"data_{r[0]}.png")
             Image.fromarray(stacked_frames[r[0]].astype(np.uint8)).save(path)
 
+    result, summary_stats = parsed_stacked_frames(
+        y_offsets[selected_y], selected_y, stacked_frames
+    )
+
+    end_time = datetime.now(timezone.utc)
+    duration = (end_time - start_time).total_seconds()
+    logging.info(f"Parsed {len(video)} frames in {duration:.2f} seconds")
+
+    return result, summary_stats
+
+
+def parsed_stacked_frames(
+    state_machine: StateMachine,
+    selected_y: int,
+    stacked_frames: Dict[int, FLOAT_FRAME_TYPE],
+) -> Tuple[Dict[int, EmbeddedData], "pd.Series[float]"]:
+
     result: Dict[int, EmbeddedData] = {}
     summary_stats: Dict[int, float] = {}
-    state_machine = y_offsets[selected_y]
     for frame_index, stacked_frame in stacked_frames.items():
         chars: List[str] = []
         best_scores: List[float] = []
@@ -209,10 +225,6 @@ def fast_parse(
         result[int(frame_index)] = state_machine.result()
         summary_stats[int(frame_index)] = pd.Series(best_scores).mean()
         state_machine.reset()
-
-    end_time = datetime.now(timezone.utc)
-    duration = (end_time - start_time).total_seconds()
-    logging.info(f"Parsed {len(video)} frames in {duration:.2f} seconds")
 
     return result, pd.Series(summary_stats)
 

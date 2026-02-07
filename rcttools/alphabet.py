@@ -60,9 +60,9 @@ NEGATIVE = Character("-")
 NEGATIVE_OR_NUMBER: Dict[str, Character] = {
     **NUMBERS,
     "-": NEGATIVE,
-    " ": FixedScore(0.8),
+    " ": FixedScore(0.6),
 }
 NEGATIVE_OR_NOTHING: Dict[str, Character] = {
     "-": NEGATIVE,
-    "": FixedScore(0.8),
+    "": FixedScore(0.6),
 }
