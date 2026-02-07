@@ -42,10 +42,11 @@ def transcode(mp4_path: str) -> VIDEO_TYPE:
     """
     height = 40
     width = 1450
+    rate = "29.97"
     mp4 = ffmpeg.input(mp4_path)
     trimmed = mp4.filter("crop", w=width, h=height, x=0, y=1035)
-    white = ffmpeg.input(f"color=white:s={width}x{height}", f="lavfi")
-    black = ffmpeg.input(f"color=black:s={width}x{height}", f="lavfi")
+    white = ffmpeg.input(f"color=white:s={width}x{height}:r={rate}", f="lavfi")
+    black = ffmpeg.input(f"color=black:s={width}x{height}:r={rate}", f="lavfi")
     out, _ = (
         ffmpeg.filter([trimmed, white, white, black], "threshold")
         .output("pipe:", format="rawvideo", pix_fmt="rgb24")
