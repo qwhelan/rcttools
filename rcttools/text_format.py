@@ -2,7 +2,14 @@ import datetime as dt
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, TypedDict
 
-from .alphabet import NEGATIVE_OR_NOTHING, NEGATIVE_OR_NUMBER, NUMBERS, Character
+from .alphabet import (
+    NEGATIVE_NUMBERS_OR_PERIOD,
+    NEGATIVE_OR_NOTHING,
+    NEGATIVE_OR_NUMBER,
+    NUMBERS,
+    NUMBERS_OR_PERIOD,
+    Character,
+)
 from .common import CHAR_WIDTHS
 
 
@@ -38,6 +45,10 @@ class ValueStateMachine:
         if char.isdigit() or char == "-":
             self.force_numbers = True
         self.chars.append(char)
+        if char == ".":
+            while self.alphabet_by_position[self.position] != "PERIOD":
+                self.chars.append("")
+                self.position += 1
         self.position += 1
         if self.position > len(self.alphabet_by_position):
             raise ValueError(f"Unexpected character: {char} {type(self)}")
@@ -61,6 +72,10 @@ class ValueStateMachine:
                 if self.force_numbers:
                     return NUMBERS
                 return NEGATIVE_OR_NUMBER
+            elif alphabet == "NUMBER_OR_PERIOD":
+                if self.force_numbers:
+                    return NUMBERS_OR_PERIOD
+                return NEGATIVE_NUMBERS_OR_PERIOD
             elif alphabet == "NEGATIVE_OR_NOTHING":
                 return NEGATIVE_OR_NOTHING
             elif alphabet == "PERIOD":
@@ -112,8 +127,8 @@ class Coordinate(ValueStateMachine):
         self.alphabet_by_position = [
             "NEGATIVE_OR_NOTHING",
             "NEGATIVE_OR_NUMBER",
-            "NEGATIVE_OR_NUMBER",
-            "NEGATIVE_OR_NUMBER",
+            "NUMBER_OR_PERIOD",
+            "NUMBER_OR_PERIOD",
             "PERIOD",
             "NUMBER",
             "NUMBER",

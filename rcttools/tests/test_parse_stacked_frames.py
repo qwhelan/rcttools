@@ -47,3 +47,24 @@ def test_parsed_stacked_frames() -> None:
         latitude=Decimal("47.64858"),
         longitude=Decimal("-122.16449"),
     )
+
+
+def test_parsed_stacked_frames_v1() -> None:
+    state_machine = StateMachine(use_parity=True)
+    dir = "v1_20250601_182753"
+    stacked_frames: Dict[int, FLOAT_FRAME_TYPE] = {}
+    for i, f in enumerate(["data_0.png"]):
+        img = load_example(f"{dir}/{f}")
+        stacked_frames[i] = np.array(img).astype(float)
+    selected_y = -1
+    result, summary_stats = parsed_stacked_frames(
+        state_machine, selected_y, stacked_frames
+    )
+    assert isinstance(result, dict)
+    assert isinstance(summary_stats, pd.Series)
+
+    assert result[0] == EmbeddedData(
+        datetime=datetime(2025, 6, 1, 14, 27, 52),
+        latitude=Decimal("40.81531"),
+        longitude=Decimal("-73.96433"),
+    )

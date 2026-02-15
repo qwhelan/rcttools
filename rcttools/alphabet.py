@@ -11,6 +11,8 @@ BASE_PATH = os.path.dirname(__file__)
 
 class Character:
     def __init__(self, char: str) -> None:
+        if char == ".":
+            char = "dot"
         self.path = os.path.join(BASE_PATH, "data", f"{char}.png")
         self.array = np.array(Image.open(self.path))
         self.mask = (1 - 1.0 * self.array / 255) > 0.5
@@ -46,6 +48,8 @@ class FixedScore(Character):
 
 
 NUMBERS = {str(x): Character(str(x)) for x in range(10)}
+NEGATIVE_NUMBERS_OR_PERIOD = {**NUMBERS, ".": Character("."), " ": FixedScore(0.6)}
+NUMBERS_OR_PERIOD = {**NUMBERS, ".": Character(".")}
 
 _number_shapes = {k: v.array.shape for k, v in NUMBERS.items()}
 if len(set(_number_shapes.values())) > 1:
