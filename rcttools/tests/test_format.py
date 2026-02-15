@@ -1,4 +1,9 @@
-from ..alphabet import NEGATIVE_OR_NOTHING, NEGATIVE_OR_NUMBER, NUMBERS
+from ..alphabet import (
+    NEGATIVE_NUMBERS_OR_PERIOD,
+    NEGATIVE_OR_NOTHING,
+    NUMBERS,
+    NUMBERS_OR_PERIOD,
+)
 from ..text_format import Coordinate, DateTime, StateMachine
 
 
@@ -83,10 +88,10 @@ def test_coordinate1() -> None:
     assert state_machine.offset == 0
     state_machine.append(" ", 0)
     assert state_machine.offset == 10
-    assert state_machine.get_alphabet() == NEGATIVE_OR_NUMBER
+    assert state_machine.get_alphabet() == NEGATIVE_NUMBERS_OR_PERIOD
     state_machine.append("4", 0)
     assert state_machine.offset == 31
-    assert state_machine.get_alphabet() == NUMBERS
+    assert state_machine.get_alphabet() == NUMBERS_OR_PERIOD
     state_machine.append("7", 0)
     assert state_machine.offset == 52
     assert state_machine.get_alphabet() == NUMBERS
@@ -130,10 +135,10 @@ def test_coordinate2() -> None:
     assert state_machine.get_alphabet() == NUMBERS
     state_machine.append("1", 0)
     assert state_machine.offset == 37
-    assert state_machine.get_alphabet() == NUMBERS
+    assert state_machine.get_alphabet() == NUMBERS_OR_PERIOD
     state_machine.append("2", 0)
     assert state_machine.offset == 58
-    assert state_machine.get_alphabet() == NUMBERS
+    assert state_machine.get_alphabet() == NUMBERS_OR_PERIOD
     state_machine.append("2", 0)
     assert state_machine.offset == 79
     assert state_machine.get_alphabet() == NUMBERS
@@ -220,7 +225,7 @@ def test_coordinate1_20240608() -> None:
     state_machine = Coordinate()
     state_machine.append("", 0)
     state_machine.append(" ", 0)
-    assert state_machine.get_alphabet() == NEGATIVE_OR_NUMBER
+    assert state_machine.get_alphabet() == NEGATIVE_NUMBERS_OR_PERIOD
     state_machine.append("4", 1)
     state_machine.append("7", -1)
     assert state_machine.get_alphabet() == NUMBERS
