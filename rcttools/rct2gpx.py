@@ -189,6 +189,8 @@ def parsed_stacked_frames(
         chars: List[str] = []
         best_scores: List[float] = []
 
+        frame_failed = False
+
         while not state_machine.is_complete():
             alphabet = state_machine.get_alphabet()
             if alphabet == {}:
@@ -218,12 +220,17 @@ def parsed_stacked_frames(
                     max_score = score
                     max_letter = letter
 
-            state_machine.append(max_letter)
-            chars.append(max_letter)
-            best_scores.append(max_score)
+            if max_score >= 0.5:
+                state_machine.append(max_letter)
+                chars.append(max_letter)
+                best_scores.append(max_score)
+            else:
+                frame_failed = True
+                break
 
-        result[int(frame_index)] = state_machine.result()
-        summary_stats[int(frame_index)] = pd.Series(best_scores).mean()
+        if not frame_failed:
+            result[int(frame_index)] = state_machine.result()
+            summary_stats[int(frame_index)] = pd.Series(best_scores).mean()
         state_machine.reset()
 
     return result, pd.Series(summary_stats)
@@ -234,6 +241,8 @@ def add_heading(
 ) -> Dict[int, EmbeddedAndDerivedData]:
     result: Dict[int, EmbeddedAndDerivedData] = {}
     keys = sorted(embedded_data.keys())
+    if len(keys) == 0:
+        return result
     heading: Decimal | None = None
     for i in range(len(keys) - 1):
         data1 = embedded_data[keys[i]]
