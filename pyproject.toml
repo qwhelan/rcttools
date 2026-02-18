@@ -26,6 +26,11 @@ dependencies = [
   "exif>=1.6.1",
 ]
 
+[project.urls]
+Repository = "https://github.com/qwhelan/rcttools.git"
+Issues = "https://github.com/qwhelan/rcttools/issues"
+Changelog = "https://github.com/qwhelan/rcttools/blob/main/CHANGELOG.md"
+
 [build-system]
 requires = ["uv_build>=0.9.16"]
 build-backend = "uv_build"
