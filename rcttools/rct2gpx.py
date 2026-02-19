@@ -1,5 +1,7 @@
 import logging
 import os.path
+import subprocess
+import sys
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Dict, List, Tuple
@@ -32,6 +34,19 @@ class OutputType:
     CSV = "csv"
     DATA_STACKED_FRAMES = "data_stacked_frames"
     FULL_FRAMES = "full_frames"
+
+
+def get_ffmpeg_version() -> List[int]:
+    try:
+        out = subprocess.check_output(["ffmpeg", "-version"], stderr=subprocess.STDOUT)
+        version_line = (
+            out.decode().splitlines()[0].replace("ffmpeg version ", "").split()[0]
+        )
+        version_parts = version_line.split(".")
+        return [int(part) for part in version_parts]
+    except Exception as e:
+        logging.error(f"Error getting FFmpeg version: {e}")
+        return [0, 0, 0]  # Default to a very old version if we can't determine it
 
 
 def transcode(mp4_path: str) -> VIDEO_TYPE:
@@ -317,6 +332,15 @@ def main() -> None:
         help="Show summary statistics for alphabet fit debugging",
     )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+
+    ffmpeg_version = get_ffmpeg_version()
+    if ffmpeg_version[0] < 7:
+        print(
+            f"FFmpeg version 7 or higher is required, but version {'.'.join(map(str, ffmpeg_version))} was found",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+        return
 
     args = parser.parse_args()
     types = args.types or [OutputType.GPX]
