@@ -129,6 +129,9 @@ def fast_parse(
 ) -> Tuple[dict[int, EmbeddedData], "pd.Series[float]"]:
     alphabet = NUMBERS
 
+    if not os.path.exists(mp4_path):
+        raise FileNotFoundError(f"Input file not found: {mp4_path}")
+
     video = transcode(mp4_path)
 
     start_time = datetime.now(timezone.utc)
@@ -358,11 +361,16 @@ def main() -> None:
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
-    embedded_data, summary_stats = fast_parse(
-        mp4_path,
-        write_stacked_frames=OutputType.DATA_STACKED_FRAMES in types,
-        output_directory=prefix,
-    )
+    try:
+        embedded_data, summary_stats = fast_parse(
+            mp4_path,
+            write_stacked_frames=OutputType.DATA_STACKED_FRAMES in types,
+            output_directory=prefix,
+        )
+    except FileNotFoundError as e:
+        print(e, file=sys.stderr)
+        sys.exit(2)
+        return
     result = add_heading(embedded_data)
 
     if show_stats or args.verbose:
