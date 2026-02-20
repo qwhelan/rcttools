@@ -22,6 +22,7 @@ from .common import (
     calc_bearing,
     dec_to_dms,
 )
+from .errors import UnsupportedVideoResolutionError
 from .text_format import EmbeddedData, StateMachine
 
 
@@ -62,11 +63,27 @@ def transcode(mp4_path: str) -> VIDEO_TYPE:
     trimmed = mp4.filter("crop", w=width, h=height, x=0, y=1035)
     white = ffmpeg.input(f"color=white:s={width}x{height}:r={rate}", f="lavfi")
     black = ffmpeg.input(f"color=black:s={width}x{height}:r={rate}", f="lavfi")
-    out, _ = (
-        ffmpeg.filter([trimmed, white, white, black], "threshold")
-        .output("pipe:", format="rawvideo", pix_fmt="rgb24")
-        .run(capture_stdout=True, quiet=True)
-    )
+    try:
+        out, _ = (
+            ffmpeg.filter([trimmed, white, white, black], "threshold")
+            .output("pipe:", format="rawvideo", pix_fmt="rgb24")
+            .run(capture_stdout=True, quiet=True)
+        )
+    except ffmpeg.Error:
+        r = ffmpeg.probe(
+            mp4_path,
+            v="error",
+            select_streams="v:0",
+            show_entries="stream=width,height",
+            of="json",
+        )
+        stream_data = r["streams"][0]
+        if stream_data["width"] != 1920 or stream_data["height"] != 1080:
+            raise UnsupportedVideoResolutionError(
+                f"Unexpected video resolution {stream_data['width']}x{stream_data['height']}. "
+                "This tool currently only supports 1080p video."
+            )
+        raise
     return np.frombuffer(out, np.uint8).reshape([-1, height, width, 3])
 
 
@@ -370,6 +387,10 @@ def main() -> None:
     except FileNotFoundError as e:
         print(e, file=sys.stderr)
         sys.exit(2)
+        return
+    except UnsupportedVideoResolutionError as e:
+        print(e, file=sys.stderr)
+        sys.exit(3)
         return
     result = add_heading(embedded_data)
 
