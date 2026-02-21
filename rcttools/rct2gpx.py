@@ -264,7 +264,14 @@ def parsed_stacked_frames(
                 break
 
         if not frame_failed:
-            result[int(frame_index)] = state_machine.result()
+            frame_result = state_machine.result()
+            if frame_result["latitude"] == Decimal("0") and frame_result[
+                "longitude"
+            ] == Decimal("0"):
+                # Can occur when successfully connecting to head unit that
+                # has not obtained a GPS fix yet
+                continue
+            result[int(frame_index)] = frame_result
             summary_stats[int(frame_index)] = pd.Series(best_scores).mean()
         state_machine.reset()
 
