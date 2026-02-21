@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+### Bug Fixes
+ - Handle scenario where head unit is connected but does not have a valid GPS fix and returns (0, 0)
+
 ## 0.3.0
 
 ### Breaking Changes
