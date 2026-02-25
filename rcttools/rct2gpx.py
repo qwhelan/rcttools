@@ -431,9 +431,10 @@ def main() -> None:
                         time=data["datetime"],
                     )
                 )
-        gpx_path = os.path.join(prefix, f"{basename}.gpx")
-        with open(gpx_path, "w") as f:
-            f.write(gpx_obj.to_xml(version="1.1"))
+        if len(result) > 0:
+            gpx_path = os.path.join(prefix, f"{basename}.gpx")
+            with open(gpx_path, "w") as f:
+                f.write(gpx_obj.to_xml(version="1.1"))
 
     if full_frames:
         extract_full_frames(mp4_path, result, prefix)
